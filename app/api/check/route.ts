@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { normalizePhone, maskPhone, riskLevel, RISK_LABEL, CHANNELS, SCAM_TYPES } from "@/lib/phone";
+import { meTooCount } from "@/lib/metoo";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const [reports, openDispute] = await Promise.all([
+  const [reports, openDispute, meToo] = await Promise.all([
     prisma.report.findMany({
       where: { phone, status: "approved" },
       orderBy: { createdAt: "desc" },
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
       },
     }),
     prisma.dispute.findFirst({ where: { phone, status: "open" } }),
+    meTooCount(phone),
   ]);
 
   // Fire-and-forget usage counter (never blocks the answer).
@@ -41,6 +43,7 @@ export async function GET(req: NextRequest) {
     level,
     levelLabel: RISK_LABEL[level],
     reportCount: reports.length,
+    meToo,
     disputed: !!openDispute,
     reports: level === "disputed" ? [] : reports.map((r) => ({
       channel: CHANNELS[r.channel] || r.channel,
