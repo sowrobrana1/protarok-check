@@ -27,13 +27,28 @@ export async function POST(req: NextRequest) {
   if (description.length > 2000) return NextResponse.json({ ok: false, error: "বিবরণ খুব বড় হয়ে গেছে।" }, { status: 400 });
 
   const trxId = String(body.trxId || "").trim();
-  const evidence = typeof body.evidence === "string" ? body.evidence : null;
-  if (evidence && (!evidence.startsWith("data:image/") || evidence.length > 2_000_000)) {
-    return NextResponse.json({ ok: false, error: "প্রমাণের ছবিটি খুব বড় বা সঠিক ফরম্যাটে নেই।" }, { status: 400 });
+  // Evidence: up to 5 screenshots (chat + payment etc.), stored as a JSON
+  // array of data URLs in the same column (legacy single-string supported).
+  let evidenceList: string[] = [];
+  if (typeof body.evidence === "string" && body.evidence) evidenceList = [body.evidence];
+  else if (Array.isArray(body.evidence)) evidenceList = body.evidence.filter((x: unknown) => typeof x === "string");
+  if (evidenceList.length > 5) {
+    return NextResponse.json({ ok: false, error: "সর্বোচ্চ ৫টি ছবি দেওয়া যাবে।" }, { status: 400 });
   }
-  if (!trxId && !evidence) {
+  let evidenceTotal = 0;
+  for (const ev of evidenceList) {
+    if (!ev.startsWith("data:image/") || ev.length > 2_000_000) {
+      return NextResponse.json({ ok: false, error: "প্রমাণের কোনো একটি ছবি খুব বড় বা সঠিক ফরম্যাটে নেই।" }, { status: 400 });
+    }
+    evidenceTotal += ev.length;
+  }
+  if (evidenceTotal > 6_000_000) {
+    return NextResponse.json({ ok: false, error: "ছবিগুলো মোটের উপর খুব বড় হয়ে গেছে — কমিয়ে আবার চেষ্টা করুন।" }, { status: 400 });
+  }
+  if (!trxId && evidenceList.length === 0) {
     return NextResponse.json({ ok: false, error: "প্রমাণ ছাড়া রিপোর্ট প্রকাশ করা হয় না — লেনদেনের TrxID অথবা স্ক্রিনশট দিন।" }, { status: 400 });
   }
+  const evidence = evidenceList.length ? JSON.stringify(evidenceList) : null;
 
   let amount: number | null = null;
   if (body.amount !== undefined && body.amount !== "" && body.amount !== null) {
