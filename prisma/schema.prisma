@@ -54,3 +54,14 @@ model CheckLog {
 
   @@index([createdAt])
 }
+
+/// One-tap "আমার সাথেও হয়েছে" from other victims of the same number.
+/// Anonymous; only a hashed IP is kept, purely as a 24h duplicate guard.
+model MeToo {
+  id        Int      @id @default(autoincrement())
+  phone     String
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  @@index([phone, createdAt])
+}
