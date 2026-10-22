@@ -50,6 +50,19 @@ export async function POST(req: NextRequest) {
   }
   const evidence = evidenceList.length ? JSON.stringify(evidenceList) : null;
 
+  // Duplicate guard: one transaction = one report. The same TrxID (any
+  // letter case) may not be submitted twice while a report using it is
+  // pending or approved.
+  if (trxId) {
+    const dup = await prisma.report.findFirst({
+      where: { trxId: { equals: trxId, mode: "insensitive" }, status: { in: ["pending", "approved"] } },
+      select: { id: true },
+    });
+    if (dup) {
+      return NextResponse.json({ ok: false, error: "এই TrxID দিয়ে আগেই একটি রিপোর্ট জমা পড়েছে — একই লেনদেনের জন্য দ্বিতীয় রিপোর্ট লাগবে না। আপনার ঘটনা অন্য লেনদেনের হলে সেই TrxID দিন।" }, { status: 409 });
+    }
+  }
+
   let amount: number | null = null;
   if (body.amount !== undefined && body.amount !== "" && body.amount !== null) {
     amount = parseInt(String(body.amount), 10);
