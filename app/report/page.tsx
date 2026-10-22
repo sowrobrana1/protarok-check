@@ -7,28 +7,36 @@ export default function ReportPage() {
     phone: "", channel: "bkash", scamType: "advance", amount: "",
     incidentDate: "", description: "", trxId: "", reporterPhone: "",
   });
-  const [evidence, setEvidence] = useState<string | null>(null);
+  const [evidence, setEvidence] = useState<string[]>([]);
   const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   function set(k: string, v: string) { setForm((f) => ({ ...f, [k]: v })); }
 
-  // Shrink the screenshot in the browser so uploads stay small.
+  // Shrink each screenshot in the browser so uploads stay small.
+  // Up to 5 evidence images (e.g. chat screenshots + payment screenshot).
   function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const img = new Image();
-    img.onload = () => {
-      const max = 1000;
-      const scale = Math.min(1, max / Math.max(img.width, img.height));
-      const c = document.createElement("canvas");
-      c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
-      c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
-      setEvidence(c.toDataURL("image/jpeg", 0.78));
-      URL.revokeObjectURL(img.src);
-    };
-    img.src = URL.createObjectURL(file);
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    for (const file of files) {
+      const img = new Image();
+      img.onload = () => {
+        const max = 1000;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+        c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
+        const url = c.toDataURL("image/jpeg", 0.78);
+        setEvidence((prev) => (prev.length >= 5 ? prev : [...prev, url]));
+        URL.revokeObjectURL(img.src);
+      };
+      img.src = URL.createObjectURL(file);
+    }
+  }
+
+  function removeEvidence(i: number) {
+    setEvidence((prev) => prev.filter((_, idx) => idx !== i));
   }
 
   async function submit(e: React.FormEvent) {
@@ -42,7 +50,7 @@ export default function ReportPage() {
       });
       const j = await r.json();
       setMsg({ ok: j.ok, text: j.ok ? j.message : j.error });
-      if (j.ok) { setForm({ phone: "", channel: "bkash", scamType: "advance", amount: "", incidentDate: "", description: "", trxId: "", reporterPhone: "" }); setEvidence(null); setAgree(false); }
+      if (j.ok) { setForm({ phone: "", channel: "bkash", scamType: "advance", amount: "", incidentDate: "", description: "", trxId: "", reporterPhone: "" }); setEvidence([]); setAgree(false); }
     } catch { setMsg({ ok: false, text: "সংযোগে সমস্যা হচ্ছে। আবার চেষ্টা করুন।" }); }
     setBusy(false);
   }
@@ -85,9 +93,22 @@ export default function ReportPage() {
           <label>লেনদেনের TrxID (প্রমাণ — TrxID অথবা স্ক্রিনশট যেকোনো একটি আবশ্যক)</label>
           <input placeholder="যেমন: 9HX7K2LMN1" value={form.trxId} onChange={(e) => set("trxId", e.target.value)} />
 
-          <label>প্রমাণের স্ক্রিনশট (ঐচ্ছিক, TrxID দিলে ছাড়াও চলবে)</label>
-          <input type="file" accept="image/*" onChange={onFile} />
-          {evidence && <p className="small">ছবি যুক্ত হয়েছে ✓</p>}
+          <label>প্রমাণের স্ক্রিনশট — সর্বোচ্চ ৫টি (চ্যাটের ছবি + লেনদেনের ছবি সবগুলো দিন, যাচাই সহজ হবে)</label>
+          <input type="file" accept="image/*" multiple onChange={onFile} />
+          {evidence.length > 0 && (
+            <div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+                {evidence.map((src, i) => (
+                  <span key={i} style={{ position: "relative", display: "inline-block" }}>
+                    <img src={src} alt={"প্রমাণ " + (i + 1)} style={{ width: 84, height: 84, objectFit: "cover", borderRadius: 10, border: "1px solid #d8dee2" }} />
+                    <button type="button" onClick={() => removeEvidence(i)} aria-label="ছবি সরান"
+                      style={{ position: "absolute", top: -8, right: -8, width: 22, height: 22, borderRadius: "50%", border: "none", background: "#c0392b", color: "#fff", cursor: "pointer", lineHeight: 1 }}>✕</button>
+                  </span>
+                ))}
+              </div>
+              <p className="small">{evidence.length}/৫টি ছবি যুক্ত হয়েছে ✓ {evidence.length < 5 && "— আরো যোগ করতে আবার ছবি বেছে নিন।"}</p>
+            </div>
+          )}
 
           <label>আপনার নিজের মোবাইল নম্বর * (গোপন থাকবে)</label>
           <input inputMode="tel" placeholder="01XXXXXXXXX" value={form.reporterPhone} onChange={(e) => set("reporterPhone", e.target.value)} required />
