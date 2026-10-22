@@ -1,0 +1,56 @@
+// প্রতারক চেক — database schema (PostgreSQL / Supabase)
+// Tables are also provided as raw SQL in create_tables.sql for manual setup.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// One user-submitted fraud report against a phone number.
+/// A report is only visible publicly after moderation (status = "approved").
+/// The reporter's own phone number is PRIVATE and never exposed by any API.
+model Report {
+  id            Int       @id @default(autoincrement())
+  phone         String // normalized scammer number: 01XXXXXXXXX
+  channel       String // bkash | nagad | rocket | bank | p2p | call | shop | other
+  scamType      String // free short label chosen from the form list
+  amount        Int? // taka lost (optional)
+  incidentDate  String? // YYYY-MM-DD (optional)
+  description   String // what happened (public once approved)
+  trxId         String? // transaction id as supporting proof (private)
+  evidence      String? // base64 data URL of screenshot (private, moderation only)
+  reporterPhone String // reporter's own number (private, for follow-up only)
+  status        String    @default("pending") // pending | approved | rejected
+  createdAt     DateTime  @default(now())
+  reviewedAt    DateTime?
+
+  @@index([phone, status])
+  @@index([status, createdAt])
+}
+
+/// Objection from a number's owner. While a dispute is "open", the number's
+/// public profile is softened to "আপত্তি পর্যালোচনাধীন" until resolved.
+model Dispute {
+  id         Int       @id @default(autoincrement())
+  phone      String
+  reason     String
+  contact    String // how to reach the objector (private)
+  status     String    @default("open") // open | removed | kept
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@index([phone, status])
+}
+
+/// Anonymous search counter (no user data) for simple usage stats.
+model CheckLog {
+  id        Int      @id @default(autoincrement())
+  phone     String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
