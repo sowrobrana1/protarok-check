@@ -9,6 +9,15 @@ type Pending = {
 };
 type Dispute = { id: number; phone: string; reason: string; contact: string; createdAt: string };
 
+// Evidence is stored as a JSON array of data URLs (legacy: a single data URL).
+function evidenceList(ev: string | null): string[] {
+  if (!ev) return [];
+  if (ev.startsWith("[")) {
+    try { const a = JSON.parse(ev); return Array.isArray(a) ? a.filter((x) => typeof x === "string") : []; } catch { return []; }
+  }
+  return [ev];
+}
+
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
@@ -68,7 +77,9 @@ export default function AdminPage() {
                 TrxID: {r.trxId || "—"} · রিপোর্টার: {maskPhone(r.reporterPhone)} (গোপন) · {toBn(new Date(r.createdAt).toLocaleString("bn-BD"))}
               </div>
               <p style={{ margin: "8px 0" }}>{r.description}</p>
-              {r.evidence && <img className="evidence" src={r.evidence} alt="প্রমাণের স্ক্রিনশট" />}
+              {evidenceList(r.evidence).map((src, i) => (
+                <img key={i} className="evidence" src={src} alt={"প্রমাণের স্ক্রিনশট " + (i + 1)} />
+              ))}
               <div className="adminbar">
                 <button className="btn" onClick={() => act("approve", r.id)}>✓ যাচাই হয়েছে — প্রকাশ করুন</button>
                 <button className="btn red" onClick={() => act("reject", r.id)}>✗ বাতিল</button>
