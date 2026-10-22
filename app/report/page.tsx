@@ -49,8 +49,10 @@ export default function ReportPage() {
 
   return (
     <main className="wrap">
-      <section>
-        <h2>প্রতারণার রিপোর্ট করুন</h2>
+      <div className="pagehead">
+        <h2>🚨 প্রতারণার রিপোর্ট করুন</h2>
+      </div>
+      <section style={{ paddingTop: 6 }}>
         <p className="small">
           আপনার রিপোর্ট সরাসরি প্রকাশ হবে না — প্রমাণ যাচাই করে তারপর প্রকাশ করা হবে।
           আপনার নিজের নম্বর শুধু যাচাইয়ের প্রয়োজনে নেওয়া হয়, <strong>কখনো প্রকাশ করা হয় না</strong>।
