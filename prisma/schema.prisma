@@ -22,7 +22,7 @@ model Report {
   incidentDate  String? // YYYY-MM-DD (optional)
   description   String // what happened (public once approved)
   trxId         String? // transaction id as supporting proof (private)
-  evidence      String? // base64 data URL of screenshot (private, moderation only)
+  evidence      String? // JSON array of base64 data URLs, up to 5 screenshots (private, moderation only)
   reporterPhone String // reporter's own number (private, for follow-up only)
   status        String    @default("pending") // pending | approved | rejected
   createdAt     DateTime  @default(now())
