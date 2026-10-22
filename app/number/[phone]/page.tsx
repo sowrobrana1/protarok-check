@@ -1,21 +1,48 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { normalizePhone, maskPhone, riskLevel, RISK_LABEL, CHANNELS, SCAM_TYPES, toBn } from "@/lib/phone";
+import { meTooCount } from "@/lib/metoo";
 import { notFound } from "next/navigation";
+import MeTooButton from "./MeTooButton";
 
 export const dynamic = "force-dynamic";
+
+// SEO: someone searching the raw number on Google should land here and see
+// the verified picture before sending money.
+export async function generateMetadata({ params }: { params: { phone: string } }): Promise<Metadata> {
+  const phone = normalizePhone(params.phone);
+  if (!phone) return { title: "নম্বর পাওয়া যায়নি | প্রতারক চেক" };
+  let count = 0;
+  try {
+    count = await prisma.report.count({ where: { phone, status: "approved" } });
+  } catch { /* metadata must never break the page */ }
+  const title = count > 0
+    ? `${phone} — এই নম্বরে ${toBn(count)}টি যাচাইকৃত প্রতারণার অভিযোগ | প্রতারক চেক`
+    : `${phone} — নম্বরটি যাচাই করুন | প্রতারক চেক`;
+  const description = count > 0
+    ? `${phone} নম্বরটির বিরুদ্ধে প্রমাণ যাচাই করে ${toBn(count)}টি প্রতারণার অভিযোগ প্রকাশ করা হয়েছে। টাকা পাঠানোর আগে বিস্তারিত দেখুন — প্রতারক চেক।`
+    : `${phone} নম্বরটি প্রতারক চেকে যাচাই করুন — এই নম্বরে কোনো যাচাইকৃত প্রতারণার অভিযোগ আছে কিনা দেখুন।`;
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "website" },
+    robots: { index: true, follow: true },
+  };
+}
 
 // Full public profile of one number — reached by exact-number search.
 export default async function NumberPage({ params }: { params: { phone: string } }) {
   const phone = normalizePhone(params.phone);
   if (!phone) notFound();
 
-  const [reports, openDispute] = await Promise.all([
+  const [reports, openDispute, meToo] = await Promise.all([
     prisma.report.findMany({
       where: { phone: phone!, status: "approved" },
       orderBy: { createdAt: "desc" },
       select: { channel: true, scamType: true, amount: true, incidentDate: true, description: true, createdAt: true },
     }),
     prisma.dispute.findFirst({ where: { phone: phone!, status: "open" } }),
+    meTooCount(phone!),
   ]);
 
   const level = riskLevel(reports.length, !!openDispute);
@@ -56,6 +83,8 @@ export default async function NumberPage({ params }: { params: { phone: string }
             </div>
           </>
         )}
+
+        {level !== "disputed" && <MeTooButton phone={phone!} initialCount={meToo} />}
 
         <div className="item" style={{ marginTop: 20 }}>
           <strong>এই নম্বর দিয়ে আপনিও ঠকেছেন?</strong>
