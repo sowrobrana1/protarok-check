@@ -34,7 +34,15 @@ CREATE TABLE IF NOT EXISTS "CheckLog" (
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS "MeToo" (
+  "id" SERIAL PRIMARY KEY,
+  "phone" TEXT NOT NULL,
+  "ipHash" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS "Report_phone_status_idx" ON "Report"("phone", "status");
 CREATE INDEX IF NOT EXISTS "Report_status_createdAt_idx" ON "Report"("status", "createdAt");
 CREATE INDEX IF NOT EXISTS "Dispute_phone_status_idx" ON "Dispute"("phone", "status");
 CREATE INDEX IF NOT EXISTS "CheckLog_createdAt_idx" ON "CheckLog"("createdAt");
+CREATE INDEX IF NOT EXISTS "MeToo_phone_createdAt_idx" ON "MeToo"("phone", "createdAt");
