@@ -42,6 +42,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav>
               <a href="/">যাচাই</a>
               <a href="/report">রিপোর্ট</a>
+              <a href="/stories">গল্প</a>
+              <a href="/guide">কৌশল</a>
               <a href="/objection">আপত্তি</a>
               <a href="/disclaimer">নীতিমালা</a>
             </nav>
@@ -63,6 +65,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ul>
                   <li><a href="/">নম্বর যাচাই</a></li>
                   <li><a href="/report">প্রতারণার রিপোর্ট</a></li>
+                  <li><a href="/stories">প্রতারণার গল্প</a></li>
+                  <li><a href="/guide">প্রতারকের কৌশল</a></li>
                   <li><a href="/objection">আপত্তি জানান</a></li>
                 </ul>
               </div>
