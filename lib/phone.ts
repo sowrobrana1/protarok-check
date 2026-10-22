@@ -63,3 +63,33 @@ export const SCAM_TYPES: Record<string, string> = {
   fake_seller: "ভুয়া বিক্রেতা",
   other: "অন্যান্য প্রতারণা",
 };
+
+/** Bengali relative time: "এইমাত্র", "৫ মিনিট আগে", "২ ঘণ্টা আগে", "৩ দিন আগে". */
+export function timeAgoBn(input: string | Date): string {
+  const t = input instanceof Date ? input.getTime() : new Date(input).getTime();
+  const diff = Math.max(0, Date.now() - t);
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "এইমাত্র";
+  if (min < 60) return `${toBn(min)} মিনিট আগে`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${toBn(hr)} ঘণ্টা আগে`;
+  const day = Math.floor(hr / 24);
+  if (day < 30) return `${toBn(day)} দিন আগে`;
+  return toBn(new Date(t).toLocaleDateString("bn-BD"));
+}
+
+/** Evocative-but-factual headline for a case story, from its report fields. */
+export function storyTitle(r: { scamType: string; channel?: string; amount?: number | null }): string {
+  const base: Record<string, string> = {
+    advance: "অগ্রিম টাকা নিয়ে উধাও",
+    fake_offer: "লোভনীয় অফারের ফাঁদ",
+    otp: "কৌশলে OTP জেনে অ্যাকাউন্ট ফাঁকা",
+    fake_official: "অফিস সেজে ভয় দেখিয়ে টাকা হাতালো",
+    p2p: "P2P লেনদেনে টাকা নিয়ে ব্লক",
+    fake_seller: "ভুয়া বিক্রেতার জালে সর্বস্বান্ত",
+    other: "প্রতারণার শিকার হলেন যেভাবে",
+  };
+  const t = base[r.scamType] || base.other;
+  const via = r.channel && CHANNELS[r.channel] ? `${CHANNELS[r.channel]}ে ` : "";
+  return r.amount ? `${via}${t} — খোয়ালেন ৳${toBn(r.amount)}` : `${via}${t}`;
+}
