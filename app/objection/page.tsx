@@ -22,8 +22,10 @@ export default function ObjectionPage() {
 
   return (
     <main className="wrap">
-      <section>
-        <h2>আপত্তি জানান</h2>
+      <div className="pagehead">
+        <h2>✋ আপত্তি জানান</h2>
+      </div>
+      <section style={{ paddingTop: 6 }}>
         <p className="small">
           আপনার নম্বরে ভুল বা মিথ্যা অভিযোগ এসেছে মনে হলে এখানে আপত্তি জানান।
           আপত্তি জমা পড়লেই ওই নম্বরের পেজে "পর্যালোচনাধীন" দেখানো হবে, আর অভিযোগ
