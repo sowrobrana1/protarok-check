@@ -160,3 +160,19 @@ footer.site a:hover{text-decoration:underline}
 footer.site ul{list-style:none;margin:0;padding:0}
 footer.site li{padding:3px 0}
 footer.site .fine{border-top:1px solid rgba(255,255,255,.1);margin-top:18px;padding-top:13px;font-size:13px;color:#7e97a0}
+
+/* --- discovery sections + result extras (2026-10-23) --- */
+.scanbox{margin-top:14px;background:#f2f7f5;border:1px dashed #b9d2c7;border-radius:12px;padding:12px 14px}
+.scanstep{font-size:14px;color:#8aa79b;padding:3px 0;transition:color .3s}
+.scanstep.active{color:#063f2e;font-weight:600}
+.scanstep.done{color:#1f9d63}
+.meter-row{margin-top:12px;max-width:430px}
+.meter{height:10px;background:#e6ecea;border-radius:99px;overflow:hidden;margin-top:5px}
+.meter-fill{height:100%;border-radius:99px;transition:width .9s ease}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+@media (max-width:760px){.cols2{grid-template-columns:1fr}}
+.linkitem{display:block;text-decoration:none;color:inherit}
+.linkitem:hover{border-color:#0b6e4f}
+.rank{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#d4a017;color:#fff;font-weight:700;font-size:14px;margin-right:8px;vertical-align:2px}
+.pulse{display:inline-block;width:9px;height:9px;border-radius:50%;background:#c62828;margin-right:8px;animation:pl 1.6s infinite}
+@keyframes pl{0%{box-shadow:0 0 0 0 rgba(198,40,40,.45)}70%{box-shadow:0 0 0 8px rgba(198,40,40,0)}100%{box-shadow:0 0 0 0 rgba(198,40,40,0)}}
