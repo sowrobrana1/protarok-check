@@ -24,7 +24,7 @@ model Report {
   trxId         String? // transaction id as supporting proof (private)
   evidence      String? // JSON array of base64 data URLs, up to 5 screenshots (private, moderation only)
   reporterPhone String // reporter's own number (private, for follow-up only)
-  status        String    @default("pending") // pending | approved | rejected
+  status        String    @default("pending") // pending | approved | rejected | hidden (অফ, প্রমাণ থাকে) | withdrawn (প্রত্যাহার)
   createdAt     DateTime  @default(now())
   reviewedAt    DateTime?
 
@@ -64,4 +64,29 @@ model MeToo {
   createdAt DateTime @default(now())
 
   @@index([phone, createdAt])
+}
+
+/// Permanent audit trail of every admin action on a report (approve, reject,
+/// hide/off, withdraw, restore, edit, dispute outcomes). Rows are never
+/// deleted — this is the proof of what was done, and when.
+model AdminLog {
+  id        Int      @id @default(autoincrement())
+  reportId  Int?
+  phone     String?
+  action    String // approve | reject | hide | withdraw | restore | edit | dispute_remove | dispute_keep
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@index([reportId])
+  @@index([createdAt])
+}
+
+/// One row per browser session visit (path only, no user data) for daily
+/// visitor counts in the admin dashboard.
+model VisitLog {
+  id        Int      @id @default(autoincrement())
+  path      String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }
