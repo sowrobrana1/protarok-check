@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import VisitPing from "./VisitPing";
 
 export const metadata: Metadata = {
   title: "প্রতারক চেক — টাকা পাঠানোর আগে নম্বর যাচাই করুন",
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#063f2e" />
       </head>
       <body>
+        <VisitPing />
         <header className="site">
           <div className="wrap bar">
             <a href="/" className="brandlink">
