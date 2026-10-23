@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
   if (body.action === "reports") {
     const status = typeof body.status === "string" ? body.status : "all";
     let q = typeof body.q === "string" ? body.q : "";
-    q = q.replace(/[০-৯]/g, (c) => String("০১২৩৪৫৬৭৮৯".indexOf(c))).replace(/[\s-]/g, "");
+    q = q.replace(/[০-৯]/g, (c: string) => String("০১২৩৪৫৬৭৮৯".indexOf(c))).replace(/[\s-]/g, "");
     const page = Math.max(1, parseInt(String(body.page || 1), 10) || 1);
     const per = 30;
     const where: any = {};
